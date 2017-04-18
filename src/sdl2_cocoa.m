@@ -9,7 +9,7 @@
 
 // #include <SDL2/SDL_video.h>
 #include "sdl2_video.h"
-#include <SDL2/SDL_syswm.h>
+#include <SDL_syswm.h>
 #import <Cocoa/Cocoa.h>
 
 static mrb_value mrb_sdl2_cocoa_change_transparency(mrb_state *mrb, mrb_value self)
@@ -47,7 +47,7 @@ void mrb_mruby_sdl2_cocoa_gem_init(mrb_state *mrb) {
   class_Window = mrb_class_get_under(mrb, mod_Video, "Window");
 
   mrb_define_method(mrb, class_Window, "change_transparency", mrb_sdl2_cocoa_change_transparency, MRB_ARGS_NONE() );
-  
+
   arena_size = mrb_gc_arena_save(mrb);
 
   mrb_gc_arena_restore(mrb, arena_size);
