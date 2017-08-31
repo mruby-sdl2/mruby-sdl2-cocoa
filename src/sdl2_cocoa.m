@@ -1,23 +1,23 @@
 #include "sdl2_cocoa.h"
 
-#include "sdl2.h"
-
 #include "mruby.h"
 #include "mruby/value.h"
 #include "mruby/string.h"
 #include "mruby/data.h"
 
-// #include <SDL2/SDL_video.h>
+#include "sdl2.h"
 #include "sdl2_video.h"
 #include <SDL_syswm.h>
+// #include <SDL_video.h>
 #import <Cocoa/Cocoa.h>
 
 static mrb_value mrb_sdl2_cocoa_change_transparency(mrb_state *mrb, mrb_value self)
 {
   SDL_Window *window = mrb_sdl2_video_window_get_ptr(mrb, self);
   SDL_SysWMinfo info;
+  SDL_VERSION(&info.version);
   if( SDL_GetWindowWMInfo(window, &info) == false ) {
-    // printf("SDL_GetWindowWMInfo from %d FAILED.\n", window);
+    printf("SDL_GetWindowWMInfo from %d FAILED: %s\n", window, SDL_GetError());
     return mrb_nil_value();
   }
   NSWindow *nswindow = info.info.cocoa.window;
@@ -37,6 +37,24 @@ static mrb_value mrb_sdl2_cocoa_change_transparency(mrb_state *mrb, mrb_value se
   }
 }
 
+static mrb_value mrb_sdl2_cocoa_on_top(mrb_state *mrb, mrb_value self)
+{
+  SDL_Window *window = mrb_sdl2_video_window_get_ptr(mrb, self);
+  SDL_SysWMinfo info;
+  SDL_VERSION(&info.version);
+  if( SDL_GetWindowWMInfo(window, &info) == false ) {
+    printf("SDL_GetWindowWMInfo from %d FAILED: %s\n", window, SDL_GetError());
+    return mrb_nil_value();
+  }
+  NSWindow *nswindow = info.info.cocoa.window;
+
+  @autoreleasepool {
+    [nswindow setLevel:NSFloatingWindowLevel];
+  }
+
+  return self;
+}
+
 void mrb_mruby_sdl2_cocoa_gem_init(mrb_state *mrb) {
   int arena_size;
 
@@ -47,6 +65,7 @@ void mrb_mruby_sdl2_cocoa_gem_init(mrb_state *mrb) {
   class_Window = mrb_class_get_under(mrb, mod_Video, "Window");
 
   mrb_define_method(mrb, class_Window, "change_transparency", mrb_sdl2_cocoa_change_transparency, MRB_ARGS_NONE() );
+  mrb_define_method(mrb, class_Window, "on_top", mrb_sdl2_cocoa_on_top, MRB_ARGS_NONE() );
 
   arena_size = mrb_gc_arena_save(mrb);
 
